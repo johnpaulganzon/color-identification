@@ -2,9 +2,13 @@
   <div class="camera-container">
     <!-- Start screen -->
     <div v-if="!started" class="start-screen">
-      <v-btn color="primary" @click="start" large rounded elevation="3">
-        Start Color Detection
-      </v-btn>
+      <div class="start-content">
+        <h2 class="title">Hue Detection</h2>
+        <p class="subtitle">Identify colors in real time using your camera</p>
+        <v-btn color="primary" @click="start" large rounded elevation="3">
+          Start Color Detection
+        </v-btn>
+      </div>
     </div>
 
     <!-- Camera view -->
@@ -137,9 +141,7 @@ export default {
 
         const hex = `#${[r, g, b].map(c => c.toString(16).padStart(2, '0')).join('')}`.toUpperCase()
         this.colorName = `${closestName} (${hex})`
-
-        const textColor = `rgb(${closestRGB[0]}, ${closestRGB[1]}, ${closestRGB[2]})`
-        this.crossColor = textColor
+        this.crossColor = `rgb(${closestRGB.join(',')})`
 
         requestAnimationFrame(loop)
       }
@@ -152,60 +154,79 @@ export default {
 
 <style scoped>
 .camera-container {
-  width: 100vw;
+  width: 100%;
   height: 100vh;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
   background-color: black;
 }
 
 .start-screen {
-  flex: 1;
+  height: 100vh;
   display: flex;
-  align-items: center;
   justify-content: center;
-  background-color: #121212;
+  align-items: center;
+  text-align: center;
+  background: #121212;
+  padding: 20px;
+}
+
+.start-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.title {
+  color: white;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.subtitle {
+  color: #ccc;
+  font-size: 16px;
+  margin-bottom: 8px;
 }
 
 .camera-wrapper {
   position: relative;
-  flex: 1;
   width: 100%;
-  height: 100%;
-  overflow: hidden;
   display: flex;
-  flex-direction: column;
   justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }
 
 .video-wrapper {
   position: relative;
   width: 100%;
-  flex: 1;
+  max-width: 500px;
+  aspect-ratio: 1 / 1;
   overflow: hidden;
+  border-radius: 12px;
+  border: 2px solid #444;
 }
 
 video {
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   display: block;
 }
 
 .color-name {
   position: absolute;
-  top: 10%;
+  top: 10px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.7);
   color: white;
-  font-size: 20px;
-  font-weight: 600;
   padding: 8px 16px;
   border-radius: 8px;
-  z-index: 10;
-  white-space: nowrap;
+  font-size: 18px;
+  font-weight: bold;
+  z-index: 2;
+  text-align: center;
 }
 
 .crosshair {
@@ -213,21 +234,17 @@ video {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 32px;
+  font-size: 36px;
   font-weight: bold;
-  z-index: 10;
-  text-shadow: 0 0 5px black;
   pointer-events: none;
+  z-index: 2;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
 }
 
 .controls {
-  position: absolute;
-  bottom: 20px;
-  left: 0;
-  right: 0;
   display: flex;
-  justify-content: space-between;
-  padding: 0 20px;
-  z-index: 20;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px 0;
 }
 </style>
