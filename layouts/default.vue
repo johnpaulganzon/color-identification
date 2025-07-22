@@ -3,20 +3,27 @@
     <!-- App Bar -->
     <v-app-bar color="white" app flat>
       <v-container class="d-flex align-center justify-space-between">
-        <!-- Empty spacer for alignment -->
+        <!-- Left Spacer (same width as logout) -->
         <div style="width: 80px;"></div>
 
-        <!-- Centered Title -->
-        <h1 class="app-title">Online Color Detection</h1>
+        <!-- Centered Title Wrapper -->
+        <div class="title-wrapper">
+          <h1 class="app-title">Online Color Detection</h1>
+        </div>
 
         <!-- Logout Button -->
-        <v-btn color="primary" small @click="logout">
+        <v-btn
+          v-if="$auth.loggedIn && $route.path === '/home'"
+          color="primary"
+          small
+          @click="logout"
+        >
           Logout
         </v-btn>
       </v-container>
     </v-app-bar>
 
-    <!-- Main content -->
+    <!-- Main Content -->
     <v-main>
       <v-container class="pt-10">
         <Nuxt />
@@ -35,19 +42,24 @@ export default {
   name: 'DefaultLayout',
   methods: {
     logout() {
-      // Replace with actual logout logic
-      alert('Logged out!')
+      this.$auth.logout()
     }
   }
 }
 </script>
 
 <style scoped>
+.title-wrapper {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
 .app-title {
   color: #1976D2; /* Vuetify primary blue */
   font-size: 20px;
   font-weight: 700;
   margin: 0;
-  text-align: center;
 }
 </style>

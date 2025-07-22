@@ -1,47 +1,63 @@
 import colors from 'vuetify/es5/util/colors'
 
 export default {
-  // Disable server-side rendering
   ssr: false,
 
-  // Global page headers
   head: {
-    titleTemplate: '%s - color-detection-app',
-    title: 'color-detection-app',
-    htmlAttrs: {
-      lang: 'en'
-    },
+    titleTemplate: '%s - Online Color Detection',
+    title: 'Online Color Detection',
+    htmlAttrs: { lang: 'en' },
     meta: [
       { charset: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { hid: 'description', name: 'description', content: '' },
+      { hid: 'description', name: 'description', content: 'Detect colors in real time using your device camera.' },
       { name: 'format-detection', content: 'telephone=no' }
     ],
-    link: [
-      { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
-    ]
+    link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }]
   },
 
-  // Global CSS
   css: [],
 
-  // Plugins to run before rendering page
-  plugins: [
-    { src: '~/plugins/colorDetector.client.js', mode: 'client' }
-  ],
+  plugins: [],
 
-  // Auto import components
   components: true,
 
-  // Modules for dev and build
-  buildModules: [
-    '@nuxtjs/vuetify',
+  buildModules: ['@nuxtjs/vuetify'],
+
+  modules: [
+    '@nuxtjs/axios',
+    '@nuxtjs/auth-next'
   ],
 
-  // Modules
-  modules: [],
+  axios: {
+    baseURL: '/'
+  },
 
-  // Vuetify module configuration
+  auth: {
+    redirect: {
+      login: '/welcome',              // Splash or welcome screen
+      logout: '/welcome',             // After logout
+      callback: '/callback',          // Auth0 callback URL
+      home: '/home'                   // After successful login
+    },
+    cookie: {
+      options: {
+        secure: true,
+        domain: '.vercel.app'         // Important for Vercel deployment
+      }
+    },
+    strategies: {
+      auth0: {
+        domain: process.env.AUTH0_DOMAIN,
+        clientId: process.env.AUTH0_CLIENT_ID,
+        audience: '',
+        redirectUri: process.env.AUTH0_REDIRECT_URI,
+        logoutRedirectUri: process.env.AUTH0_LOGOUT_REDIRECT_URI,
+        scope: ['openid', 'profile', 'email']
+      }
+    }
+  },
+
   vuetify: {
     customVariables: ['~/assets/variables.scss'],
     theme: {
@@ -60,6 +76,9 @@ export default {
     }
   },
 
-  // Build configuration
-  build: {}
+  build: {},
+
+  router: {
+    middleware: [] // Add ['auth'] if you want to protect all routes by default
+  }
 }
