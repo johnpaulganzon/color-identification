@@ -8,25 +8,27 @@
     </div>
 
     <!-- Camera view -->
-    <div v-else>
-      <video ref="video" autoplay muted playsinline></video>
-      <canvas ref="canvas" style="display: none;"></canvas>
+    <div v-else class="camera-wrapper">
+      <div class="video-wrapper">
+        <video ref="video" autoplay muted playsinline></video>
+        <canvas ref="canvas" style="display: none;"></canvas>
 
-      <!-- Flip camera -->
-      <v-btn icon class="flip-btn" color="primary" @click="flipCamera" elevation="2">
-        <v-icon>mdi-camera-switch</v-icon>
-      </v-btn>
+        <!-- Color name -->
+        <div class="color-name">{{ colorName }}</div>
 
-      <!-- Exit camera -->
-      <v-btn icon class="exit-btn" color="error" @click="stopDetection" elevation="2">
-        <v-icon>mdi-close</v-icon>
-      </v-btn>
+        <!-- Crosshair -->
+        <div class="crosshair" :style="{ color: crossColor }">+</div>
+      </div>
 
-      <!-- Color name -->
-      <div class="color-name">{{ colorName }}</div>
-
-      <!-- Crosshair -->
-      <div class="crosshair">+</div>
+      <!-- Controls (exit and flip) -->
+      <div class="controls">
+        <v-btn icon color="error" @click="stopDetection" elevation="2">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+        <v-btn icon color="primary" @click="flipCamera" elevation="2">
+          <v-icon>mdi-camera-switch</v-icon>
+        </v-btn>
+      </div>
     </div>
   </div>
 </template>
@@ -38,7 +40,8 @@ export default {
       started: false,
       colorName: '',
       stream: null,
-      facingMode: 'environment'
+      facingMode: 'environment',
+      crossColor: 'red'
     }
   },
   beforeDestroy() {
@@ -121,19 +124,22 @@ export default {
 
         let closestName = 'Unknown'
         let minDist = Infinity
+        let closestRGB = [r, g, b]
 
         for (const [name, [cr, cg, cb]] of Object.entries(namedColors)) {
-          const dist = Math.sqrt(
-            (r - cr) ** 2 + (g - cg) ** 2 + (b - cb) ** 2
-          )
+          const dist = Math.sqrt((r - cr) ** 2 + (g - cg) ** 2 + (b - cb) ** 2)
           if (dist < minDist) {
             minDist = dist
             closestName = name
+            closestRGB = [cr, cg, cb]
           }
         }
 
         const hex = `#${[r, g, b].map(c => c.toString(16).padStart(2, '0')).join('')}`.toUpperCase()
         this.colorName = `${closestName} (${hex})`
+
+        const textColor = `rgb(${closestRGB[0]}, ${closestRGB[1]}, ${closestRGB[2]})`
+        this.crossColor = textColor
 
         requestAnimationFrame(loop)
       }
@@ -146,29 +152,49 @@ export default {
 
 <style scoped>
 .camera-container {
-  position: relative;
-  width: 100%;
+  width: 100vw;
   height: 100vh;
-  background-color: black;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background-color: black;
 }
 
 .start-screen {
-  height: 100vh;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: #121212;
 }
 
-video {
+.camera-wrapper {
+  position: relative;
+  flex: 1;
   width: 100%;
   height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  overflow: hidden;
+}
+
+video {
+  width: 100vw;
+  height: 100vh;
   object-fit: cover;
+  display: block;
 }
 
 .color-name {
-  position: fixed;
+  position: absolute;
   top: 10%;
   left: 50%;
   transform: translateX(-50%);
@@ -176,37 +202,32 @@ video {
   color: white;
   font-size: 20px;
   font-weight: 600;
-  padding: 10px 16px;
+  padding: 8px 16px;
   border-radius: 8px;
-  z-index: 15;
-  text-align: center;
+  z-index: 10;
   white-space: nowrap;
 }
 
 .crosshair {
-  position: fixed;
+  position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: red;
   font-size: 32px;
   font-weight: bold;
-  pointer-events: none;
-  z-index: 20;
+  z-index: 10;
   text-shadow: 0 0 5px black;
+  pointer-events: none;
 }
 
-.flip-btn {
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  z-index: 30;
-}
-
-.exit-btn {
-  position: fixed;
-  top: 16px;
-  left: 16px;
-  z-index: 30;
+.controls {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+  z-index: 20;
 }
 </style>
