@@ -1,33 +1,35 @@
 <template>
   <div class="camera-container">
-    <!-- Step 1: Show START button -->
+    <!-- Step 1: Start button screen -->
     <div v-if="!started" class="start-screen">
-      <v-btn color="primary" @click="start" large>
+      <v-btn color="primary" @click="start" large rounded elevation="3">
         Start Color Detection
       </v-btn>
     </div>
 
-    <!-- Step 2: Show camera + detection UI -->
+    <!-- Step 2: Camera view and detection -->
     <div v-else>
       <video ref="video" autoplay muted playsinline></video>
       <canvas ref="canvas" style="display: none;"></canvas>
 
-      <!-- Color Name -->
-      <div class="color-name">{{ colorName }}</div>
-
-      <!-- Crosshair -->
-      <div class="crosshair">+</div>
-
-      <!-- Flip Camera Button -->
+      <!-- Flip Camera Button (Top-Right) -->
       <v-btn
-        color="primary"
+        icon
         class="flip-btn"
+        color="primary"
         @click="flipCamera"
         elevation="2"
-        small
       >
-        Flip
+        <v-icon>mdi-camera-switch</v-icon>
       </v-btn>
+
+      <!-- Color Name (Center Top) -->
+      <div class="color-name">
+        {{ colorName }}
+      </div>
+
+      <!-- Centered Crosshair -->
+      <div class="crosshair">+</div>
     </div>
   </div>
 </template>
@@ -91,9 +93,17 @@ export default {
         const x = Math.floor(canvas.width / 2);
         const y = Math.floor(canvas.height / 2);
         const [r, g, b] = ctx.getImageData(x, y, 1, 1).data;
+
         const hex = `#${[r, g, b].map(c => c.toString(16).padStart(2, '0')).join('')}`;
         const [name] = ntc.name(hex);
-        this.colorName = name;
+
+        // Only update if the name is not just a hex label
+        if (!name.toLowerCase().includes('hex')) {
+          this.colorName = name;
+        } else {
+          this.colorName = 'Unknown Color';
+        }
+
         requestAnimationFrame(loop);
       };
       loop();
@@ -107,19 +117,38 @@ export default {
   position: relative;
   width: 100%;
   height: 100vh;
+  background-color: black;
   overflow: hidden;
 }
+
 .start-screen {
   height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: #121212;
 }
+
 video {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
+
+.color-name {
+  position: absolute;
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-size: 24px;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
 .crosshair {
   position: absolute;
   top: 50%;
@@ -129,21 +158,13 @@ video {
   font-size: 32px;
   font-weight: bold;
   pointer-events: none;
+  text-shadow: 0 0 5px black;
 }
-.color-name {
-  position: absolute;
-  top: 35%;
-  left: 50%;
-  transform: translateX(-50%);
-  color: white;
-  font-size: 20px;
-  background: rgba(0, 0, 0, 0.5);
-  padding: 6px 12px;
-  border-radius: 6px;
-}
+
 .flip-btn {
   position: absolute;
-  bottom: 20px;
-  right: 20px;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
 }
 </style>
