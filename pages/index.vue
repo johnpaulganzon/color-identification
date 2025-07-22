@@ -128,6 +128,7 @@ export default {
     detectLoop() {
       const canvas = this.$refs.canvas
       const ctx = canvas.getContext('2d')
+      const snap = (val, step = 16) => Math.round(val / step) * step
 
       const loop = () => {
         ctx.drawImage(this.$refs.video, 0, 0, canvas.width, canvas.height)
@@ -135,18 +136,16 @@ export default {
         const y = Math.floor(canvas.height / 2)
         const [r, g, b] = ctx.getImageData(x, y, 1, 1).data
 
-        const hex = `#${[r, g, b].map(c => c.toString(16).padStart(2, '0')).join('')}`.toLowerCase()
+        // Snap color to nearest step
+        const snappedHex = `#${[snap(r), snap(g), snap(b)]
+          .map(c => Math.max(0, Math.min(255, c)).toString(16).padStart(2, '0'))
+          .join('')}`.toLowerCase()
 
-        // Check overrides first
-        if (this.overrides[hex]) {
-          this.colorName = this.overrides[hex]
+        if (this.overrides[snappedHex]) {
+          this.colorName = this.overrides[snappedHex]
         } else {
-          const [name, exact] = ntc.name(hex)
-          if (exact || /^[a-z\s]+$/i.test(name)) {
-            this.colorName = name
-          } else {
-            this.colorName = 'Unknown Color'
-          }
+          const [name] = ntc.name(snappedHex)
+          this.colorName = name || 'Unknown Color'
         }
 
         requestAnimationFrame(loop)
