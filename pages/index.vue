@@ -17,6 +17,11 @@
         <v-icon>mdi-camera-switch</v-icon>
       </v-btn>
 
+      <!-- Exit camera -->
+      <v-btn icon class="exit-btn" color="error" @click="stopDetection" elevation="2">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+
       <!-- Color name -->
       <div class="color-name">{{ colorName }}</div>
 
@@ -27,64 +32,13 @@
 </template>
 
 <script>
-import ntc from 'ntcjs'
-
 export default {
   data() {
     return {
       started: false,
       colorName: '',
       stream: null,
-      facingMode: 'environment',
-      overrides: {
-        '#ffffff': 'White',
-        '#000000': 'Black',
-        '#ff0000': 'Red',
-        '#00ff00': 'Green',
-        '#0000ff': 'Blue',
-        '#ffff00': 'Yellow',
-        '#00ffff': 'Cyan',
-        '#ff00ff': 'Magenta',
-        '#c0c0c0': 'Silver',
-        '#808080': 'Gray',
-        '#800000': 'Maroon',
-        '#808000': 'Olive',
-        '#008000': 'Dark Green',
-        '#800080': 'Purple',
-        '#008080': 'Teal',
-        '#000080': 'Navy',
-        '#f0f8ff': 'Alice Blue',
-        '#faebd7': 'Antique White',
-        '#7fffd4': 'Aquamarine',
-        '#f5f5dc': 'Beige',
-        '#ffe4c4': 'Bisque',
-        '#a52a2a': 'Brown',
-        '#5f9ea0': 'Cadet Blue',
-        '#7fff00': 'Chartreuse',
-        '#d2691e': 'Chocolate',
-        '#6495ed': 'Cornflower Blue',
-        '#dc143c': 'Crimson',
-        '#00ced1': 'Dark Turquoise',
-        '#9400d3': 'Dark Violet',
-        '#ff1493': 'Deep Pink',
-        '#1e90ff': 'Dodger Blue',
-        '#b22222': 'Firebrick',
-        '#228b22': 'Forest Green',
-        '#ffd700': 'Gold',
-        '#daa520': 'Goldenrod',
-        '#adff2f': 'Green Yellow',
-        '#f08080': 'Light Coral',
-        '#90ee90': 'Light Green',
-        '#ffb6c1': 'Light Pink',
-        '#20b2aa': 'Light Sea Green',
-        '#87cefa': 'Light Sky Blue',
-        '#778899': 'Light Slate Gray',
-        '#b0c4de': 'Light Steel Blue',
-        '#ff6347': 'Tomato',
-        '#40e0d0': 'Turquoise',
-        '#ee82ee': 'Violet',
-        '#f5deb3': 'Wheat'
-      }
+      facingMode: 'environment'
     }
   },
   beforeDestroy() {
@@ -94,6 +48,11 @@ export default {
     async start() {
       this.started = true
       await this.startCamera()
+    },
+    stopDetection() {
+      this.stopCamera()
+      this.started = false
+      this.colorName = ''
     },
     async startCamera() {
       const constraints = {
@@ -118,6 +77,7 @@ export default {
     stopCamera() {
       if (this.stream) {
         this.stream.getTracks().forEach(track => track.stop())
+        this.stream = null
       }
     },
     flipCamera() {
@@ -128,7 +88,30 @@ export default {
     detectLoop() {
       const canvas = this.$refs.canvas
       const ctx = canvas.getContext('2d')
-      const snap = (val, step = 16) => Math.round(val / step) * step
+
+      const namedColors = {
+        "Black": [0, 0, 0],
+        "White": [255, 255, 255],
+        "Red": [255, 0, 0],
+        "Green": [0, 128, 0],
+        "Blue": [0, 0, 255],
+        "Yellow": [255, 255, 0],
+        "Cyan": [0, 255, 255],
+        "Magenta": [255, 0, 255],
+        "Gray": [128, 128, 128],
+        "Orange": [255, 165, 0],
+        "Pink": [255, 192, 203],
+        "Purple": [128, 0, 128],
+        "Brown": [165, 42, 42],
+        "Teal": [0, 128, 128],
+        "Navy": [0, 0, 128],
+        "Olive": [128, 128, 0],
+        "Maroon": [128, 0, 0],
+        "Gold": [255, 215, 0],
+        "SkyBlue": [135, 206, 235],
+        "Tomato": [255, 99, 71],
+        "Coral": [255, 127, 80]
+      }
 
       const loop = () => {
         ctx.drawImage(this.$refs.video, 0, 0, canvas.width, canvas.height)
@@ -136,20 +119,25 @@ export default {
         const y = Math.floor(canvas.height / 2)
         const [r, g, b] = ctx.getImageData(x, y, 1, 1).data
 
-        // Snap color to nearest step
-        const snappedHex = `#${[snap(r), snap(g), snap(b)]
-          .map(c => Math.max(0, Math.min(255, c)).toString(16).padStart(2, '0'))
-          .join('')}`.toLowerCase()
+        let closestName = 'Unknown'
+        let minDist = Infinity
 
-        if (this.overrides[snappedHex]) {
-          this.colorName = this.overrides[snappedHex]
-        } else {
-          const [name] = ntc.name(snappedHex)
-          this.colorName = name || 'Unknown Color'
+        for (const [name, [cr, cg, cb]] of Object.entries(namedColors)) {
+          const dist = Math.sqrt(
+            (r - cr) ** 2 + (g - cg) ** 2 + (b - cb) ** 2
+          )
+          if (dist < minDist) {
+            minDist = dist
+            closestName = name
+          }
         }
+
+        const hex = `#${[r, g, b].map(c => c.toString(16).padStart(2, '0')).join('')}`.toUpperCase()
+        this.colorName = `${closestName} (${hex})`
 
         requestAnimationFrame(loop)
       }
+
       loop()
     }
   }
@@ -186,9 +174,9 @@ video {
   transform: translateX(-50%);
   background: rgba(0, 0, 0, 0.6);
   color: white;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 600;
-  padding: 10px 18px;
+  padding: 10px 16px;
   border-radius: 8px;
   z-index: 15;
   text-align: center;
@@ -212,6 +200,13 @@ video {
   position: fixed;
   top: 16px;
   right: 16px;
+  z-index: 30;
+}
+
+.exit-btn {
+  position: fixed;
+  top: 16px;
+  left: 16px;
   z-index: 30;
 }
 </style>
