@@ -54,11 +54,15 @@ export default {
   left: 50%;
   transform: translateX(-50%);
   text-align: center;
+  white-space: nowrap;            /* Prevents line break */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 70%;                 /* Adjusts to screen size */
 }
 
 .app-title {
-  color: #1976D2; /* Vuetify primary blue */
-  font-size: 20px;
+  color: #1976D2;                 /* Vuetify primary blue */
+  font-size: clamp(16px, 5vw, 20px); /* Responsive font size */
   font-weight: 700;
   margin: 0;
 }
