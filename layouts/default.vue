@@ -17,7 +17,7 @@
           <h1 class="app-title">Online Color Detection</h1>
         </div>
 
-        <!-- Spacer to balance layout -->
+        <!-- Spacer -->
         <div style="width: 40px;"></div>
       </v-container>
     </v-app-bar>
@@ -91,7 +91,7 @@ export default {
 }
 
 .app-title {
-  color: white;
+  color: #bbbbbb;
   font-size: clamp(16px, 5vw, 20px);
   font-weight: 700;
   margin: 0;
