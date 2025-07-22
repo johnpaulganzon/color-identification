@@ -3,6 +3,7 @@
     <!-- Start screen -->
     <div v-if="!started" class="start-screen">
       <div class="start-content">
+        <v-icon large class="start-icon">mdi-eyedropper</v-icon>
         <h2 class="title">Hue Detection</h2>
         <p class="subtitle">Identify colors in real time using your camera</p>
         <v-btn color="primary" @click="start" large rounded elevation="3">
@@ -18,7 +19,9 @@
         <canvas ref="canvas" style="display: none;"></canvas>
 
         <!-- Color name -->
-        <div class="color-name">{{ colorName }}</div>
+        <div class="color-name" :style="{ color: crossColor }">
+          {{ colorName }}
+        </div>
 
         <!-- Crosshair -->
         <div class="crosshair" :style="{ color: crossColor }">+</div>
@@ -139,8 +142,7 @@ export default {
           }
         }
 
-        const hex = `#${[r, g, b].map(c => c.toString(16).padStart(2, '0')).join('')}`.toUpperCase()
-        this.colorName = `${closestName} (${hex})`
+        this.colorName = closestName
         this.crossColor = `rgb(${closestRGB.join(',')})`
 
         requestAnimationFrame(loop)
@@ -174,6 +176,12 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  align-items: center;
+}
+
+.start-icon {
+  font-size: 48px;
+  color: #90caf9;
 }
 
 .title {
@@ -204,7 +212,6 @@ export default {
   aspect-ratio: 1 / 1;
   overflow: hidden;
   border-radius: 12px;
-  border: 2px solid #444;
 }
 
 video {
@@ -219,14 +226,11 @@ video {
   top: 10px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
   z-index: 2;
   text-align: center;
+  white-space: nowrap;
 }
 
 .crosshair {
